@@ -5,15 +5,12 @@ from typing import Literal
 
 import docker
 import dotenv
-from nxtools import critical_error, logging
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
-from .version import __version__
-
-logging.user = "ash"
 dotenv.load_dotenv()
 
-logging.info(f"Starting Ash v{__version__}")
+
+LogLevel = Literal["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
 
 class BaseConfig(BaseModel):
@@ -22,12 +19,25 @@ class BaseConfig(BaseModel):
     hostname: str = Field(default_factory=socket.gethostname)
     network: str | None = Field(default=None)
     network_mode: str | None = Field(default=None)
-    log_driver: Literal["loki"] | None = Field(default=None)
-    loki_url: str | None = Field(
-        None,
-        title="Loki URL",
-        description="URL of the Loki server (if log_driver is loki)",
+
+    log_mode: Literal["text", "json"] = Field(
+        default="text",
+        description="Log output format",
     )
+
+    log_level: LogLevel = Field(
+        default="DEBUG",
+        description="Log level for the console output",
+    )
+
+    log_context: bool = Field(
+        default=False,
+        description="Print log context along with the message",
+    )
+
+    @field_validator("log_level", mode="before")
+    def validate_log_level(cls, value: str) -> str:
+        return value.upper()
 
 
 class Config(BaseConfig):
@@ -41,10 +51,9 @@ def get_local_info():
         insp = api.inspect_container(container.id)
         if insp["Config"]["Hostname"] != socket.gethostname():
             continue
-        # print(json.dumps(insp, indent=4))
         break
     else:
-        logging.error("Weird, no container found for this host")
+        print("Weird, no container found for this host", file=sys.stderr, flush=True)
         sys.exit(1)
 
     networks = insp["NetworkSettings"]["Networks"]
@@ -68,20 +77,25 @@ def get_config() -> Config:
         for error in e.errors():
             error_desc = error["msg"]
             error_loc = ".".join(str(loc) for loc in error["loc"])
-            logging.error(f"Invalid configuration at {error_loc}: {error_desc}")
 
-        critical_error("Unable to configure API")
+            print(
+                f"Error in config: {error_desc} at {error_loc}",
+                file=sys.stderr,
+                flush=True,
+            )
+
+        sys.exit(1)
 
     local_info = get_local_info()
 
-    config = Config(**base_config.dict(), binds=local_info["binds"])
+    config = Config(**base_config.model_dump(), binds=local_info["binds"])
 
     if config.network is None and config.network_mode is None:
         config.network = local_info["networks"][0]
 
-    logging.debug(
-        f"Configured worker {config.hostname} to connect to {config.server_url}"
-    )
+    # logging.debug(
+    #     f"Configured worker {config.hostname} to connect to {config.server_url}"
+    # )
     return config
 
 

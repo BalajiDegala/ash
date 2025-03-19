@@ -1,9 +1,10 @@
 import docker
-from nxtools import logging, slugify
 
-from .config import config
-from .models import ServiceConfigModel
-from .service_logging import ServiceLogger
+from ash.config import config
+from ash.logging import logger
+from ash.models import ServiceConfigModel
+from ash.service_logging import ServiceLogger
+from ash.utils import slugify
 
 
 class Services:
@@ -39,7 +40,7 @@ class Services:
             if service_name := labels.get(f"{cls.prefix}.service_name"):
                 if service_name in should_run:
                     continue
-                logging.warning(f"Stopping service {service_name}")
+                logger.warning(f"Stopping service {service_name}")
                 container.stop()
 
     @classmethod
@@ -104,16 +105,16 @@ class Services:
                 assert labels.get(f"{cls.prefix}.addon_name") == addon_name
                 assert labels.get(f"{cls.prefix}.addon_version") == addon_version
             except AssertionError:
-                logging.error("SERVICE MISMATCH. This shouldn't happen. Stopping.")
+                logger.error("SERVICE MISMATCH. This shouldn't happen. Stopping.")
                 container.stop()
 
             break
         else:
             # And start it
             addon_string = f"{addon_name}:{addon_version}/{service}"
-            logging.info(f"Starting {service_name} {addon_string} (image: {image})")
+            logger.info(f"Starting {service_name} {addon_string} (image: {image})")
 
-            kwargs = service_config.dict()
+            kwargs = service_config.model_dump()
             hostname = slugify(f"aysvc_{service_name}", separator="_")
 
             environment = {

@@ -1,12 +1,11 @@
 import time
 
-from nxtools import logging
-
-from .api import api
-from .config import config
-from .health import get_health
-from .models import ServiceConfigModel, ServiceModel
-from .services import Services
+from ash.api import api
+from ash.config import config
+from ash.health import get_health
+from ash.logging import logger
+from ash.models import ServiceConfigModel, ServiceModel
+from ash.services import Services
 
 
 def main():
@@ -21,11 +20,11 @@ def main():
     try:
         response = api.post("hosts/heartbeat", json=payload)
         if not response:
-            logging.error("no response")
+            logger.error("Heartbeat: No response")
             return
         services = response.json()["services"]
     except Exception:
-        logging.error("Unable to connect Ayon server")
+        logger.error("Unable to connect Ayon server")
         return
 
     should_run: list[str] = []
@@ -36,7 +35,7 @@ def main():
         if not service.data.image:
             continue
 
-        service_config = ServiceConfigModel(**service.data.dict())
+        service_config = ServiceConfigModel(**service.data.model_dump())
 
         Services.ensure_running(
             service_name=service.name,

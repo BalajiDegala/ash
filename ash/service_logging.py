@@ -1,6 +1,6 @@
 import threading
 
-from nxtools import logging
+from ash.logging import logger
 
 
 class ServiceLog:
@@ -10,7 +10,11 @@ class ServiceLog:
         threading.Thread(target=self._run, daemon=True).start()
 
     def _run(self):
-        logging.info(f"Starting log stream for {self.service_name}")
+        logger.info(f"Starting log stream for {self.service_name}")
+
+        if not self.container:
+            return
+
         for line in self.container.logs(stream=True, tail=1, follow=True):
             print(f"{line.decode().strip()}")
 
@@ -18,7 +22,7 @@ class ServiceLog:
         # print the status code and free the container
 
         status_code = self.container.wait()["StatusCode"]
-        logging.warning(f"{self.service_name} exited with code {status_code}")
+        logger.warning(f"{self.service_name} exited with code {status_code}")
         self.container = None
 
 
@@ -29,17 +33,6 @@ class ServiceLogger:
 
     Service is responsible for the formatting of the logs. It SHOULD contain
     the service name.
-
-    To maintain the same log format as the ash, you can use nxtools logging
-    in the service:
-
-    ```
-    import os
-    from nxtools import logging
-
-    if service_name := os.environ.get("AYON_SERVICE_NAME"):
-        logging.user = service_name
-    ```
     """
 
     services: dict[str, ServiceLog] | None = None

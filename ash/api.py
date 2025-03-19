@@ -1,10 +1,10 @@
 import time
 
 import requests
-from nxtools import critical_error, logging
 from pydantic import BaseModel
 
-from .config import config
+from ash.config import config
+from ash.logging import logger
 
 
 class User(BaseModel):
@@ -27,19 +27,24 @@ class API:
             try:
                 response = self.get("users/me")
             except Exception:
-                logging.warning("Unable to connect to the server... Retrying")
+                logger.warning("Unable to connect to the server... Retrying")
                 time.sleep(5)
+                continue
+
+            if not response:
+                logger.error(f"Unable to login. Error: {response.status_code}")
+                time.sleep(60)
+                continue
+
+            try:
+                self.user = User(**response.json())
+            except Exception:
+                logger.error(f"Unable to login: {response.text}")
+                time.sleep(60)
                 continue
             break
 
-        if not response:
-            print(response.text)
-            critical_error("Unable to login")
-        try:
-            self.user = User(**response.json())
-        except Exception:
-            critical_error("Unable to login")
-        logging.info(f"Logged in as {self.user.name}")
+        logger.info(f"Logged in as {self.user.name}")
 
     def url_for(self, endpoint: str) -> str:
         return f"{config.server_url.rstrip('/')}/api/{endpoint.strip('/')}"
