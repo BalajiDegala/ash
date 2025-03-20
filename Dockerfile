@@ -1,13 +1,11 @@
-FROM python:3.11
+FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1
-
-RUN pip3 install virtualenv poetry \
-  && poetry config virtualenvs.create false
-
 WORKDIR /ash
-COPY ./pyproject.toml /ash/pyproject.toml
-RUN poetry install --no-interaction --no-ansi
+
+COPY ./pyproject.toml ./uv.lock .
+RUN --mount=from=ghcr.io/astral-sh/uv,source=/uv,target=/bin/uv \
+    uv pip install -r pyproject.toml --system
 
 COPY ./ash /ash/ash
 CMD ["python", "-m", "ash"]
