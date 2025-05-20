@@ -1,7 +1,7 @@
 import os
 import socket
 import sys
-from typing import Literal
+from typing import Any, Literal
 
 import docker
 import dotenv
@@ -44,7 +44,7 @@ class Config(BaseConfig):
     binds: list[str] = Field(default_factory=list)
 
 
-def get_local_info():
+def get_local_info() -> dict[str, Any]:
     client = docker.DockerClient(base_url="unix://var/run/docker.sock")
     api = docker.APIClient(base_url="unix://var/run/docker.sock")
     for container in client.containers.list():

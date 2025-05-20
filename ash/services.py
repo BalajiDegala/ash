@@ -1,4 +1,7 @@
+from typing import Any
+
 import docker
+from docker.models.containers import Container
 
 from ash.config import config
 from ash.logging import logger
@@ -12,7 +15,7 @@ class Services:
     prefix: str = "io.ayon.service"
 
     @classmethod
-    def connect(cls):
+    def connect(cls) -> None:
         cls.client = docker.DockerClient(base_url="unix://var/run/docker.sock")
 
     @classmethod
@@ -30,7 +33,7 @@ class Services:
         return result
 
     @classmethod
-    def stop_orphans(cls, should_run: list[str]):
+    def stop_orphans(cls, should_run: list[str]) -> None:
         if cls.client is None:
             cls.connect()
         if cls.client is None:
@@ -51,14 +54,14 @@ class Services:
         environment: dict[str, str],
         labels: dict[str, str],
         volumes: list[str] | None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> Container | None:
         if cls.client is None:
             cls.connect()
         if cls.client is None:
-            return
+            return None
 
-        container = cls.client.containers.run(
+        container: Container = cls.client.containers.run(
             image,
             detach=True,
             auto_remove=True,
@@ -82,7 +85,7 @@ class Services:
         service: str,
         image: str,
         service_config: ServiceConfigModel,
-    ):
+    ) -> None:
         if cls.client is None:
             cls.connect()
         if cls.client is None:

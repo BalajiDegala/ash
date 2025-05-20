@@ -1,15 +1,19 @@
 import threading
 
+from docker.models.containers import Container
+
 from ash.logging import logger
 
 
 class ServiceLog:
-    def __init__(self, service_name: str, container):
+    container: Container | None = None
+
+    def __init__(self, service_name: str, container: Container) -> None:
         self.service_name = service_name
         self.container = container
         threading.Thread(target=self._run, daemon=True).start()
 
-    def _run(self):
+    def _run(self) -> None:
         logger.info(f"Starting log stream for {self.service_name}")
 
         if not self.container:
@@ -38,7 +42,7 @@ class ServiceLogger:
     services: dict[str, ServiceLog] | None = None
 
     @classmethod
-    def add(cls, service_name, container):
+    def add(cls, service_name: str, container: Container) -> None:
         if cls.services is None:
             cls.services = {}
         else:

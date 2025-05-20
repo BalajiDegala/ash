@@ -8,7 +8,7 @@ from ash.models import ServiceConfigModel, ServiceModel
 from ash.services import Services
 
 
-def main():
+def main() -> None:
     health = get_health()
 
     payload = {

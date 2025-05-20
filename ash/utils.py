@@ -17,11 +17,11 @@ def indent(text: str, length: int = 4) -> str:
     )
 
 
-def json_loads(s: str, **kwargs) -> Any:
+def json_loads(s: str, **kwargs: Any) -> Any:
     return json.loads(s, **kwargs)
 
 
-def json_dumps(obj, **kwargs) -> str:
+def json_dumps(obj: Any, **kwargs: Any) -> str:
     return json.dumps(obj, **kwargs)
 
 

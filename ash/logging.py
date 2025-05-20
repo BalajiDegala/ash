@@ -3,6 +3,7 @@ __all__ = ["logger", "log_traceback"]
 import sys
 import time
 import traceback
+from typing import Any
 
 from loguru import logger
 
@@ -14,7 +15,7 @@ def _write_stderr(message: str) -> None:
     print(message, file=sys.stderr, flush=True)
 
 
-def _serializer(message) -> None:
+def _serializer(message) -> None:  # type: ignore[no-untyped-def]
     record = message.record
     level = record["level"].name
     message = record["message"]
@@ -62,7 +63,7 @@ logger.remove(0)
 logger.add(_serializer, level=config.log_level)
 
 
-def log_traceback(message="Exception!", **kwargs):
+def log_traceback(message: str = "Exception!", **kwargs: Any) -> None:
     """Log the current exception traceback."""
     tb = traceback.format_exc()
     logger.error(message, traceback=tb, **kwargs)
