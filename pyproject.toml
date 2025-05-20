@@ -12,14 +12,17 @@ dependencies = [
   "requests>=2.32.3",
   "loguru>=0.7.3",
   "unidecode>=1.3.8",
+  "psutil>=7.0.0",
 ]
 
 [dependency-groups]
+
 dev = [
-  "ruff >=0.6",
-  "mypy ?=1.11",
-  "types-requests >=^2.31.0.20240311",
-  "kubernetes-typed >=^18.20.2",
+  "ruff >=0.11.0",
+  "mypy >=1.15.0",
+  "types-requests >=2.31.0.20240311",
+  "types-psutil>=7.0.0.20250516",
+  "kubernetes-typed >=18.20.2",
   "pre-commit >=2.20.0",
   "tomlkit >=0.13.2",
   "mkdocs-material >=9.6.7",
@@ -28,7 +31,7 @@ dev = [
   "mkdocstrings-shell >=1.0.2",
   "mkdocs-minify-plugin >=0.8.0",
   "markdown-checklist >=0.4.4",
-  "mdx-gh-links = >=0.4",
+  "mdx-gh-links >=0.4",
   "pymdown-extensions >=10.14.3",
   "mike >=2.1.3",
 ]
@@ -78,12 +81,3 @@ exclude = "^[test|tool].*"
 # for strict mypy: (this is the tricky one :-))
 disallow_untyped_defs = true
 
-[dependency-groups]
-dev = [
-    "mypy>=1.15.0",
-    "pre-commit>=4.2.0",
-    "ruff>=0.11.0",
-    "types-docker>=7.1.0.20241229",
-    "types-psutil>=7.0.0.20250218",
-    "types-requests>=2.32.0.20250306",
-]
