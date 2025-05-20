@@ -1,9 +1,9 @@
+import glob
+import json
+import logging
 import os
 from pathlib import Path
 from shutil import rmtree
-import json
-import glob
-import logging
 
 TMP_FILE = "./missing_init_files.json"
 NFILES = []
@@ -92,10 +92,7 @@ def add_missing_init_files(*roots, msg=""):
             if "." in dirpath:
                 continue
 
-            if (
-                not glob.glob(os.path.join(dirpath, "*.py"))
-                and "vendor" not in dirpath
-            ):
+            if not glob.glob(os.path.join(dirpath, "*.py")) and "vendor" not in dirpath:
                 continue
 
             create_init_file(dirpath, msg)
@@ -120,7 +117,7 @@ def remove_missing_init_files(msg=""):
     global NFILES
     nfiles = []
     if os.path.exists(TMP_FILE):
-        with open(TMP_FILE, "r") as f:
+        with open(TMP_FILE) as f:
             nfiles = json.load(f)
     else:
         nfiles = NFILES

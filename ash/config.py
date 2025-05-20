@@ -53,7 +53,7 @@ def get_local_info() -> dict[str, Any]:
             continue
         break
     else:
-        logger.error("Weird, no container found for this host")
+        print("Weird, no container found for this host")
         sys.exit(1)
 
     networks = insp["NetworkSettings"]["Networks"]
