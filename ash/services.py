@@ -1,9 +1,13 @@
-import docker
-from nxtools import logging, slugify
+from typing import Any
 
-from .config import config
-from .models import ServiceConfigModel
-from .service_logging import ServiceLogger
+import docker
+from docker.models.containers import Container
+
+from ash.config import config
+from ash.logging import logger
+from ash.models import ServiceConfigModel
+from ash.service_logging import ServiceLogger
+from ash.utils import slugify
 
 
 class Services:
@@ -11,7 +15,7 @@ class Services:
     prefix: str = "io.ayon.service"
 
     @classmethod
-    def connect(cls):
+    def connect(cls) -> None:
         cls.client = docker.DockerClient(base_url="unix://var/run/docker.sock")
 
     @classmethod
@@ -29,7 +33,7 @@ class Services:
         return result
 
     @classmethod
-    def stop_orphans(cls, should_run: list[str]):
+    def stop_orphans(cls, should_run: list[str]) -> None:
         if cls.client is None:
             cls.connect()
         if cls.client is None:
@@ -39,7 +43,7 @@ class Services:
             if service_name := labels.get(f"{cls.prefix}.service_name"):
                 if service_name in should_run:
                     continue
-                logging.warning(f"Stopping service {service_name}")
+                logger.warning(f"Stopping service {service_name}")
                 container.stop()
 
     @classmethod
@@ -50,14 +54,14 @@ class Services:
         environment: dict[str, str],
         labels: dict[str, str],
         volumes: list[str] | None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> Container | None:
         if cls.client is None:
             cls.connect()
         if cls.client is None:
-            return
+            return None
 
-        container = cls.client.containers.run(
+        container: Container = cls.client.containers.run(
             image,
             detach=True,
             auto_remove=True,
@@ -81,7 +85,7 @@ class Services:
         service: str,
         image: str,
         service_config: ServiceConfigModel,
-    ):
+    ) -> None:
         if cls.client is None:
             cls.connect()
         if cls.client is None:
@@ -104,16 +108,16 @@ class Services:
                 assert labels.get(f"{cls.prefix}.addon_name") == addon_name
                 assert labels.get(f"{cls.prefix}.addon_version") == addon_version
             except AssertionError:
-                logging.error("SERVICE MISMATCH. This shouldn't happen. Stopping.")
+                logger.error("SERVICE MISMATCH. This shouldn't happen. Stopping.")
                 container.stop()
 
             break
         else:
             # And start it
             addon_string = f"{addon_name}:{addon_version}/{service}"
-            logging.info(f"Starting {service_name} {addon_string} (image: {image})")
+            logger.info(f"Starting {service_name} {addon_string} (image: {image})")
 
-            kwargs = service_config.dict()
+            kwargs = service_config.model_dump()
             hostname = slugify(f"aysvc_{service_name}", separator="_")
 
             environment = {

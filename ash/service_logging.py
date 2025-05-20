@@ -1,16 +1,24 @@
 import threading
 
-from nxtools import logging
+from docker.models.containers import Container
+
+from ash.logging import logger
 
 
 class ServiceLog:
-    def __init__(self, service_name: str, container):
+    container: Container | None = None
+
+    def __init__(self, service_name: str, container: Container) -> None:
         self.service_name = service_name
         self.container = container
         threading.Thread(target=self._run, daemon=True).start()
 
-    def _run(self):
-        logging.info(f"Starting log stream for {self.service_name}")
+    def _run(self) -> None:
+        logger.info(f"Starting log stream for {self.service_name}")
+
+        if not self.container:
+            return
+
         for line in self.container.logs(stream=True, tail=1, follow=True):
             print(f"{line.decode().strip()}")
 
@@ -18,7 +26,7 @@ class ServiceLog:
         # print the status code and free the container
 
         status_code = self.container.wait()["StatusCode"]
-        logging.warning(f"{self.service_name} exited with code {status_code}")
+        logger.warning(f"{self.service_name} exited with code {status_code}")
         self.container = None
 
 
@@ -29,23 +37,12 @@ class ServiceLogger:
 
     Service is responsible for the formatting of the logs. It SHOULD contain
     the service name.
-
-    To maintain the same log format as the ash, you can use nxtools logging
-    in the service:
-
-    ```
-    import os
-    from nxtools import logging
-
-    if service_name := os.environ.get("AYON_SERVICE_NAME"):
-        logging.user = service_name
-    ```
     """
 
     services: dict[str, ServiceLog] | None = None
 
     @classmethod
-    def add(cls, service_name, container):
+    def add(cls, service_name: str, container: Container) -> None:
         if cls.services is None:
             cls.services = {}
         else:

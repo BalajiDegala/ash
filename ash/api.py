@@ -1,10 +1,11 @@
 import time
+from typing import Any
 
 import requests
-from nxtools import critical_error, logging
 from pydantic import BaseModel
 
-from .config import config
+from ash.config import config
+from ash.logging import logger
 
 
 class User(BaseModel):
@@ -14,7 +15,7 @@ class User(BaseModel):
 class API:
     user: User
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.session = requests.Session()
         self.session.headers.update(
             {
@@ -27,33 +28,46 @@ class API:
             try:
                 response = self.get("users/me")
             except Exception:
-                logging.warning("Unable to connect to the server... Retrying")
+                logger.warning("Unable to connect to the server... Retrying")
                 time.sleep(5)
+                continue
+
+            if not response:
+                logger.error(f"Unable to login. Error: {response.status_code}")
+                time.sleep(60)
+                continue
+
+            try:
+                self.user = User(**response.json())
+            except Exception:
+                logger.error(f"Unable to login: {response.text}")
+                time.sleep(60)
                 continue
             break
 
-        if not response:
-            print(response.text)
-            critical_error("Unable to login")
-        try:
-            self.user = User(**response.json())
-        except Exception:
-            critical_error("Unable to login")
-        logging.info(f"Logged in as {self.user.name}")
+        logger.info(f"Logged in as {self.user.name}")
 
     def url_for(self, endpoint: str) -> str:
         return f"{config.server_url.rstrip('/')}/api/{endpoint.strip('/')}"
 
-    def get(self, endpoint: str, params=None, **kwargs) -> requests.Response:
+    def get(
+        self, endpoint: str, params: dict[str, Any] | None = None, **kwargs: Any
+    ) -> requests.Response:
         return self.session.get(self.url_for(endpoint), params=params)
 
-    def post(self, endpoint: str, data=None, json=None, **kwargs) -> requests.Response:
+    def post(
+        self, endpoint: str, data: Any = None, json: Any = None, **kwargs: Any
+    ) -> requests.Response:
         return self.session.post(self.url_for(endpoint), data=data, json=json, **kwargs)
 
-    def put(self, endpoint: str, data=None, json=None, **kwargs) -> requests.Response:
+    def put(
+        self, endpoint: str, data: Any = None, json: Any = None, **kwargs: Any
+    ) -> requests.Response:
         return self.session.put(self.url_for(endpoint), data=data, json=json, **kwargs)
 
-    def patch(self, endpoint: str, data=None, json=None, **kwargs) -> requests.Response:
+    def patch(
+        self, endpoint: str, data: Any = None, json: Any = None, **kwargs: Any
+    ) -> requests.Response:
         return self.session.patch(
             self.url_for(endpoint),
             data=data,
@@ -61,7 +75,7 @@ class API:
             **kwargs,
         )
 
-    def delete(self, endpoint: str, **kwargs) -> requests.Response:
+    def delete(self, endpoint: str, **kwargs: Any) -> requests.Response:
         return self.session.delete(self.url_for(endpoint), **kwargs)
 
 

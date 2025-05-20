@@ -1,39 +1,41 @@
-[tool.poetry]
+[project]
 name = "ash"
-version = "0.4.0"
+version = "0.5.0"
 description = "Ayon service host"
 authors = ["Ynput <info@ynput.io>", "Martin Wacker <martin@ynput.io"]
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "pydantic-settings>=2.8.1",
+  "pydantic>=2.10.6",
+  "python-dotenv>=1.0.1",
+  "docker>=7.1.0",
+  "requests>=2.32.3",
+  "loguru>=0.7.3",
+  "unidecode>=1.3.8",
+  "psutil>=7.0.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-nxtools = "^1.6"
-pydantic = "^1.10.2"
-psutil = "^5.9.2"
-python-dotenv = "^0.21.0"
-docker = "^7.1.0"
-requests = "^2.32.3"
+[dependency-groups]
 
-[tool.poetry.dev-dependencies]
-ruff = "^0.3"
-mypy = "^1.8"
-types-requests = "^2.31.0.20240311"
-kubernetes-typed = "^18.20.2"
-pre-commit = "^2.20.0"
-tomlkit = "^0.13.2"
-requests = "^2.32.3"
-mkdocs-material = "^9.6.7"
-mkdocs-autoapi = "^0.4.0"
-mkdocstrings-python = "^1.16.2"
-mkdocstrings-shell = "^1.0.2"
-mkdocs-minify-plugin = "^0.8.0"
-markdown-checklist = "^0.4.4"
-mdx-gh-links = "^0.4"
-pymdown-extensions = "^10.14.3"
-mike = "^2.1.3"
+dev = [
+  "ruff >=0.11.0",
+  "mypy >=1.15.0",
+  "types-requests >=2.31.0.20240311",
+  "types-psutil>=7.0.0.20250516",
+  "kubernetes-typed >=18.20.2",
+  "pre-commit >=2.20.0",
+  "tomlkit >=0.13.2",
+  "mkdocs-material >=9.6.7",
+  "mkdocs-autoapi >=0.4.0",
+  "mkdocstrings-python >=1.16.2",
+  "mkdocstrings-shell >=1.0.2",
+  "mkdocs-minify-plugin >=0.8.0",
+  "markdown-checklist >=0.4.4",
+  "mdx-gh-links >=0.4",
+  "pymdown-extensions >=10.14.3",
+  "mike >=2.1.3",
+]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
@@ -78,3 +80,4 @@ exclude = "^[test|tool].*"
 
 # for strict mypy: (this is the tricky one :-))
 disallow_untyped_defs = true
+
