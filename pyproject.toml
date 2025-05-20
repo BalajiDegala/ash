@@ -22,7 +22,7 @@ dev = [
   "mypy >=1.15.0",
   "types-requests >=2.31.0.20240311",
   "types-psutil>=7.0.0.20250516",
-  "kubernetes-typed >=18.20.2",
+  "types-docker>=7.1.0.20250516",
   "pre-commit >=2.20.0",
   "tomlkit >=0.13.2",
   "mkdocs-material >=9.6.7",
@@ -76,7 +76,7 @@ no_implicit_reexport = true
 explicit_package_bases = true
 strict_optional = true
 
-exclude = "^[test|tool].*"
+exclude = "^[test|tool|mkdocs_hooks.py].*"
 
 # for strict mypy: (this is the tricky one :-))
 disallow_untyped_defs = true
