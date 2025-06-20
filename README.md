@@ -6,7 +6,7 @@ ASH is a small process that handles spawning services as specified by the admini
 Running
 -------
 
-Use `poetry run -m ash` (Python 3.10 is required) or the included Dockerfile to run ash.
+Use `poetry run -m ash` (Python 3.11 is required) or the included Dockerfile to run ash.
 
 
 ### Docker
