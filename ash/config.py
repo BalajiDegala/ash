@@ -19,6 +19,14 @@ class BaseConfig(BaseModel):
     hostname: str = Field(default_factory=socket.gethostname)
     network: str | None = Field(default=None)
     network_mode: str | None = Field(default=None)
+    use_k8s: bool = Field(
+        default=False,
+        description="Run services using Kubernetes instead of Docker",
+    )
+    k8s_namespace: str = Field(
+        default="default",
+        description="Kubernetes namespace to spawn services in",
+    )
 
     log_mode: Literal["text", "json"] = Field(
         default="text",
@@ -44,7 +52,10 @@ class Config(BaseConfig):
     binds: list[str] = Field(default_factory=list)
 
 
-def get_local_info() -> dict[str, Any]:
+def get_local_info(use_k8s: bool) -> dict[str, Any]:
+    if use_k8s:
+        return {"networks": [], "binds": []}
+
     client = docker.DockerClient(base_url="unix://var/run/docker.sock")
     api = docker.APIClient(base_url="unix://var/run/docker.sock")
     for container in client.containers.list():
@@ -86,11 +97,15 @@ def get_config() -> Config:
 
         sys.exit(1)
 
-    local_info = get_local_info()
+    local_info = get_local_info(base_config.use_k8s)
 
     config = Config(**base_config.model_dump(), binds=local_info["binds"])
 
-    if config.network is None and config.network_mode is None:
+    if (
+        config.network is None
+        and config.network_mode is None
+        and local_info["networks"]
+    ):
         config.network = local_info["networks"][0]
 
     # logging.debug(

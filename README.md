@@ -27,6 +27,12 @@ docker run --rm -ti \
   ynput/ayon-ash
 ```
 
+### Kubernetes
+
+Ash can run inside a Kubernetes cluster. Set `AYON_USE_K8S=true` and specify the
+namespace with `AYON_K8S_NAMESPACE` (defaults to `default`). The worker must run
+with permissions to create pods in the chosen namespace.
+
 
 Configuration
 -------------
@@ -45,3 +51,12 @@ the server url) will be passed to the spawned services.
 ### AYON_HOSTNAME
 
 Optional setting to override the hostname.
+
+### AYON_USE_K8S
+
+Set to `true` to spawn services as Kubernetes pods instead of Docker
+containers.
+
+### AYON_K8S_NAMESPACE
+
+Namespace to use when creating pods. Defaults to `default`.
