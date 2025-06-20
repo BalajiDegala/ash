@@ -1,10 +1,9 @@
 __all__ = ["OPModel", "Field"]
 
-import json
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 def camelize(src: str) -> str:
@@ -16,14 +15,11 @@ def camelize(src: str) -> str:
 class OPModel(BaseModel):
     """Base API model."""
 
-    class Config:
-        """API model config."""
-
-        orm_mode = True
-        allow_population_by_field_name = True
-        alias_generator = camelize
-        json_loads = json.loads
-        json_dumps = json.dumps
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        alias_generator=camelize,
+    )
 
 
 class ServiceConfigModel(OPModel):
