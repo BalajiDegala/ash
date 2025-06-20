@@ -31,7 +31,36 @@ docker run --rm -ti \
 
 Ash can run inside a Kubernetes cluster. Set `AYON_USE_K8S=true` and specify the
 namespace with `AYON_K8S_NAMESPACE` (defaults to `default`). The worker must run
-with permissions to create pods in the chosen namespace.
+using a service account allowed to **create**, **list**, and **delete** pods in the
+chosen namespace.
+
+For example, you can create a dedicated role and role binding:
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ash-worker
+  namespace: <namespace>
+rules:
+  - apiGroups: ['']
+    resources: ['pods']
+    verbs: ['create', 'list', 'delete']
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ash-worker-binding
+  namespace: <namespace>
+subjects:
+  - kind: ServiceAccount
+    name: <service_account>
+roleRef:
+  kind: Role
+  name: ash-worker
+  apiGroup: rbac.authorization.k8s.io
+```
 
 
 Configuration
