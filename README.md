@@ -89,3 +89,17 @@ containers.
 ### AYON_K8S_NAMESPACE
 
 Namespace to use when creating pods. Defaults to `default`.
+
+### AYON_LOG_MODE
+
+Selects the log output format. Use `text` for human readable logs (default) or
+`json` for structured logs.
+
+### AYON_LOG_LEVEL
+
+Controls verbosity of console output. Possible values are `TRACE`, `DEBUG`,
+`INFO`, `WARNING`, `ERROR`, and `CRITICAL`. Defaults to `DEBUG`.
+
+### AYON_LOG_CONTEXT
+
+Set to `true` to include contextual information with each log message.
