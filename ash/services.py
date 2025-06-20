@@ -101,6 +101,10 @@ class Services:
         environment: dict[str, str],
         labels: dict[str, str],
         volumes: list[str] | None,
+        *,
+        ports: list[str] | None = None,
+        mem_limit: str | None = None,
+        user: str | None = None,
         **kwargs: Any,
     ) -> Container | None:
         if cls.client is None and cls.k8s_api is None:
@@ -134,11 +138,50 @@ class Services:
                         )
                     )
 
+            container_ports = []
+            if ports:
+                for p in ports:
+                    port_parts = p.split(":")
+                    if len(port_parts) == 2:
+                        host_p, cont_p = port_parts
+                        container_ports.append(
+                            k8s_client.V1ContainerPort(
+                                container_port=int(cont_p),
+                                host_port=int(host_p),
+                            )
+                        )
+                    else:
+                        container_ports.append(
+                            k8s_client.V1ContainerPort(
+                                container_port=int(port_parts[0])
+                            )
+                        )
+
+            security_context = None
+            if user is not None:
+                try:
+                    security_context = k8s_client.V1SecurityContext(
+                        run_as_user=int(user)
+                    )
+                except ValueError:
+                    logger.warning(
+                        f"Invalid user value '{user}' for service {hostname}"
+                    )
+
+            resources = None
+            if mem_limit is not None:
+                resources = k8s_client.V1ResourceRequirements(
+                    limits={"memory": mem_limit}
+                )
+
             container_obj = k8s_client.V1Container(
                 name=hostname,
                 image=image,
                 env=env,
                 volume_mounts=volume_mounts or None,
+                ports=container_ports or None,
+                security_context=security_context,
+                resources=resources,
             )
             pod_spec = k8s_client.V1PodSpec(
                 containers=[container_obj],
@@ -154,6 +197,23 @@ class Services:
             return None
 
         assert cls.client is not None
+
+        docker_ports = None
+        if ports:
+            docker_ports = {}
+            for mapping in ports:
+                parts = mapping.split(":")
+                if len(parts) == 2:
+                    host_port, container_port = parts
+                else:
+                    host_port = container_port = parts[0]
+                try:
+                    docker_ports[int(container_port)] = int(host_port)
+                except ValueError:
+                    logger.warning(
+                        f"Invalid port mapping '{mapping}' for service {hostname}"
+                    )
+
         container: Container = cls.client.containers.run(
             image,
             detach=True,
@@ -165,6 +225,9 @@ class Services:
             name=hostname,
             labels=labels,
             volumes=volumes,
+            ports=docker_ports,
+            mem_limit=mem_limit,
+            user=user,
             **kwargs,
         )
         return container
@@ -247,7 +310,7 @@ class Services:
                 f"{cls.prefix}.addon_version": addon_version,
             }
 
-            volumes = service_config.volumes or []
+            volumes = kwargs.pop("volumes", None) or []
             for bind_mount in config.binds:
                 # add global storage from the ash itself
                 if not isinstance(bind_mount, str):
@@ -262,6 +325,7 @@ class Services:
                 environment,
                 labels,
                 volumes or None,
+                **kwargs,
             )
 
         # Ensure container logger is running
