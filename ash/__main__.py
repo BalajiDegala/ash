@@ -50,6 +50,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    while "my guitar gently weeps":
+    while True:
         main()
         time.sleep(2)
