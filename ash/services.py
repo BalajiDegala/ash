@@ -292,7 +292,7 @@ class Services:
             logger.info(f"Starting {service_name} {addon_string} (image: {image})")
 
             kwargs = service_config.model_dump()
-            hostname = slugify(f"aysvc_{service_name}", separator="_")
+            hostname = slugify(f"aysvc-{service_name}")
 
             environment = {
                 "AYON_SERVER_URL": config.server_url,
